@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Portfolio Rebalancer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background);
+            margin: 0;
+            padding: 2rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border-radius: 1rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--text-primary);
+            font-size: 2rem;
+            margin-bottom: 2.5rem;
+            font-weight: 700;
+        }
+
+        .current-prices {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .price-card {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .price-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .price-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .price-card p {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        input {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            background: var(--background);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        button {
+            grid-column: span 2;
+            padding: 1rem;
+            color: white;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            color: var(--text-secondary);
+            margin: 1.5rem 0;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: var(--background);
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0;
+            height: 0.5rem;
+            background-color: var(--primary-color);
+            border-radius: 0.5rem;
+            transition: width 0.3s ease;
+        }
+
+        #results {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--background);
+            border-radius: 0.75rem;
+        }
+
+        #results h3 {
+            color: var(--text-primary);
+            margin-top: 0;
+        }
+
+        #results p {
+            color: var(--text-secondary);
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+
+            form {
+                grid-template-columns: 1fr;
+            }
+
+            button {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Crypto Portfolio Rebalancer</h1>
+        
+        <div class="current-prices">
+            <div class="price-card">
+                <i class="fab fa-bitcoin"></i>
+                <p id="current-btc-price">Loading BTC price...</p>
+            </div>
+            <div class="price-card">
+                <i class="fab fa-ethereum"></i>
+                <p id="current-eth-price">Loading ETH price...</p>
+            </div>
+        </div>
+
+        <form id="rebalance-form">
+            <div class="form-group">
+                <label for="btc-allocation">BTC Allocation (USD)</label>
+                <input type="number" id="btc-allocation" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="eth-allocation">ETH Allocation (USD)</label>
+                <input type="number" id="eth-allocation" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="target-btc">Target BTC Allocation (%)</label>
+                <input type="number" id="target-btc" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="target-eth">Target ETH Allocation (%)</label>
+                <input type="number" id="target-eth" required>
+            </div>
+
+            <button type="submit">Rebalance Portfolio</button>
+        </form>
+
+        <div id="loading">Analyzing portfolio and calculating optimal rebalance...</div>
+        
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+
+        <div id="results"></div>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
